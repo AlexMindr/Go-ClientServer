@@ -13,9 +13,7 @@ import (
 	"time"
 )
 
-type i struct{
-	val int64
-}
+
 func chkError(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -65,24 +63,24 @@ func subiect3(conn net.Conn, nume string){
 }
 
 func arrstr(n int)[]string {
-a := make([]string, n)
-fmt.Println("Enter the inputs")
-for i := 0; i < n; i++ {
-_, err := fmt.Scan(&a[i])
-chkError(err)
-}
-return a
+	a := make([]string, n)
+	fmt.Println("Enter the inputs")
+	for i := 0; i < n; i++ {
+	_, err := fmt.Scan(&a[i])
+	chkError(err)
+	}
+	return a
 }
 
 func subiect5(conn net.Conn, nume string){
 
-		p:=[]string{"2dasdas", "12", "dasdas", "1010", "101","a","1","0","-01","111"}
-	/*var n int
+	//p:=[]string{"2dasdas", "12", "dasdas", "1010", "101","a","1","0","-01","111"}
+	var n int
 	fmt.Println("Enter the number of elements")
 	_, err14 := fmt.Scan(&n)
 	chkError(err14)
 	p:=arrstr(n)
-	*/
+	//fmt.Println(p)
 	encoder := gob.NewEncoder(conn)
 
 	err11 := encoder.Encode(p)
@@ -113,6 +111,58 @@ func subiect5(conn net.Conn, nume string){
 
 
 }
+
+func arruint(n int)[]uint {
+	a := make([]uint, n)
+	fmt.Println("Enter the inputs")
+	for i := 0; i < n; i++ {
+		_, err := fmt.Scan(&a[i])
+		chkError(err)
+	}
+	return a
+}
+
+
+
+
+func subiect12(conn net.Conn, nume string){
+
+	//p:=[]uint{1,0,11,111}
+	var n int
+	fmt.Println("Enter the number of elements")
+	_, err14 := fmt.Scan(&n)
+	chkError(err14)
+	p:=arruint(n)
+
+
+	encoder := gob.NewEncoder(conn)
+
+	err11 := encoder.Encode(p)
+	chkError(err11)
+
+	var rez uint
+
+	for i:=1;i<5;i++{
+		message, _ := bufio.NewReader(conn).ReadString('\n')
+		if message != "" {
+			fmt.Print("Message from server: " + message)
+		}
+		if strings.Contains(message,"Server sends"){
+			var r int
+			re := regexp.MustCompile("[0-9]+")
+			//fmt.Println(re.FindAllString(message, 1))
+			res:=re.FindAllString(message, 1)
+			r, _ =strconv.Atoi(res[0])
+			rez=uint(r)
+			_, err10 := fmt.Fprintf(conn,"Client %s recieved %v as result\n",nume, rez)
+			chkError(err10)
+
+		}
+		}
+}
+
+
+
 
 func main() {
 
@@ -167,6 +217,8 @@ func main() {
 		subiect3(conn,nume)
 	case "5":
 		subiect5(conn,nume)
+	case "12":
+		subiect12(conn,nume)
 	default:
 		fmt.Println("Nu exista subiectul")
 	}

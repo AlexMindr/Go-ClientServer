@@ -166,9 +166,70 @@ func sub5(conn net.Conn,name string){
 	checkError(err6)
 }
 
+func doublefirst(a uint) uint{
+	var res,pow uint
+	aux:=a
+	pow=10
+	for a>10{
+		a=a/10
+		pow=pow*10
+	}
+	res=a*pow+aux
+	return res
+}
+
+func sumdoublefirst(s []uint, c chan uint) {
+
+	var res uint
+	res=0
+	for _, v := range s {
+
+		res+=doublefirst(v)
+		//fmt.Println(doublefirst(v))
+		}
+
+	//fmt.Println(res)
+	c <- res // send sum to c
+}
 
 
-func handleConnection(client clients) {
+func sub12(conn net.Conn,name string){
+	dec := gob.NewDecoder(conn)
+	var p []uint
+	err := dec.Decode(&p)
+	checkError(err)
+	fmt.Printf("Received from %s the following data: %+v\n", name, p)
+	newmessage := "Connected as: "+name
+	_, err2 := fmt.Fprintf(conn, "%s \n", newmessage)
+	checkError(err2)
+	time.Sleep(1000*time.Millisecond)
+	_, err8 := fmt.Fprintf(conn, "%s \n", "Request recieved")
+	checkError(err8)
+
+	//time.Sleep(5000*time.Millisecond)
+	_, err3 := fmt.Fprintf(conn,"%s \n","Server is processing...")
+	checkError(err3)
+
+	time.Sleep(5000*time.Millisecond)
+
+	c := make(chan uint)
+	go sumdoublefirst(p, c)
+	sumdouble:=<-c
+
+
+	_, err4 := fmt.Fprintf(conn,"Server sends %d as reply \n",sumdouble)
+	checkError(err4)
+
+	messageres, _ := bufio.NewReader(conn).ReadString('\n')
+	fmt.Printf("%s\n", messageres)
+
+	err6 := conn.Close()
+	checkError(err6)
+}
+
+
+
+func handleConn(client clients) {
 	conn:=client.conn
 
 	message, _ := bufio.NewReader(conn).ReadString('\n')
@@ -183,6 +244,8 @@ func handleConnection(client clients) {
 		sub3(conn,name)
 	case "5":
 		sub5(conn,name)
+	case "12":
+		sub12(conn,name)
 	default:
 		fmt.Println("Nu exista subiectul!")
 	}
@@ -224,7 +287,7 @@ func main() {
 			_, err := fmt.Fprintf(conn,"Connected\n")
 			checkError(err)
 			time.Sleep(5000*time.Millisecond)
-			go handleConnection(clienti) // a goroutine handles conn so that the loop can accept other connections
+			go handleConn(clienti) // a goroutine handles conn so that the loop can accept other connections
 			countinst++
 		}else {
 			_, err := fmt.Fprintf(conn,"Disconnected,server is full\n")
